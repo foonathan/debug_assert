@@ -109,7 +109,7 @@ The assertion macro. Usage: \`DEBUG\_ASSERT(\<expr\>, \<handler\>, \[\<level\>\]
 
   - `<expr>` - the expression to check for, the expression `!<expr>` must be well-formed and contextually convertible to `bool`.
   - `<handler>` - an object of the module specific handler
-  - `<level>` (optional, defaults to `1`) - the level of the assertion, must be an object of type [debug\_assert::level\<Level\>](README.md#debug_assert::level\<Level\>).
+  - `<level>` (optional, defaults to `1`) - the level of the assertion, must be an object of type [debug\_assert::level\<Level\>](README.md#debug_assert::level).
   - `<handler-specific-args>` (optional) - any additional arguments that are just forwarded to the handler function.
 
 It will only check the assertion if `<level>` is less than or equal to `Handler::level`. A failed assertion will call: `Handler::handle(location, expression, args)`. `location` is the [source\_location]() at the macro expansion, `expression` is the stringified expression and `args` are the `<handler-specific-args>` as-is. If the handler function returns, it will call \[std::abort()\].
@@ -129,7 +129,7 @@ Marks a branch as unreachable.
 Usage: `DEBUG_UNREACHABLE(<handler>, [<level>], [<handler-specific-args>])` Where:
 
   - `<handler>` - an object of the module specific handler
-  - `<level>` (optional, defaults to `1`) - the level of the assertion, must be an object of type [debug\_assert::level\<Level\>](README.md#debug_assert::level\<Level\>).
+  - `<level>` (optional, defaults to `1`) - the level of the assertion, must be an object of type [debug\_assert::level\<Level\>](README.md#debug_assert::level).
   - `<handler-specific-args>` (optional) - any additional arguments that are just forwarded to the handler function.
 
 It will only check the assertion if `<level>` is less than or equal to `Handler::level`. A failed assertion will call: `Handler::handle(location, "", args)`. `location` is the [source\_location]() at the macro expansion and `args` are the `<handler-specific-args>` as-is. If the handler function returns, it will call \[std::abort()\].
@@ -155,7 +155,7 @@ Defines a location in the source code.
 
 -----
 
-## Class template `debug_assert::level<Level>`<a id="debug_assert::level<Level>"></a>
+## Class template `debug_assert::level<Level>`<a id="debug_assert::level"></a>
 
 ``` cpp
 template <unsigned Level>
@@ -166,7 +166,7 @@ Tag type to indicate the level of an assertion.
 
 -----
 
-## Class template `debug_assert::set_level<Level>`<a id="debug_assert::set_level<Level>"></a>
+## Class template `debug_assert::set_level<Level>`<a id="debug_assert::set_level"></a>
 
 ``` cpp
 template <unsigned Level>
@@ -192,7 +192,7 @@ struct no_handler
 
 Does not do anything to handle a failed assertion (except calling [std::abort()](http://en.cppreference.com/mwiki/index.php?title=Special%3ASearch&search=std%3a%3aabort%28%29)). Inherit from it in your module handler.
 
-### Function template `debug_assert::no_handler::handle<Args...>`<a id="debug_assert::no_handler::handle<Args...>(const debug_assert::source_location &,const char *,Args &&...)"></a>
+### Function template `debug_assert::no_handler::handle<Args...>`<a id="debug_assert::no_handler::handle(const debug_assert::source_location &,const char *,Args &&...)"></a>
 
 ``` cpp
 template <typename ... Args>
