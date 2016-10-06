@@ -45,13 +45,15 @@ See `example.cpp` for more information and [read the blogpost](https://foonathan
 ``` cpp
 #define DEBUG_ASSERT_MARK_UNREACHABLE 
 
+#define DEBUG_ASSERT_ASSUME(Expr)
+
 #define DEBUG_ASSERT_FORCE_INLINE inline
 
 #define DEBUG_ASSERT_CUR_SOURCE_LOCATION debug_assert::source_location{__FILE__, __LINE__, __func__}
 
-#define DEBUG_ASSERT(Expr, ...) debug_assert::detail::do_assert([&] { return Expr; }, DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr, __VA_ARGS__)
+#define DEBUG_ASSERT(Expr, ...) 
 
-#define DEBUG_UNREACHABLE(...) debug_assert::detail::do_assert([&] { return false; }, DEBUG_ASSERT_CUR_SOURCE_LOCATION, "", __VA_ARGS__)
+#define DEBUG_UNREACHABLE(...) 
 
 namespace debug_assert
 {
@@ -77,7 +79,17 @@ namespace debug_assert
 
 Hint to the compiler that a code branch is unreachable. Define it yourself prior to including the header to override it.
 
------
+----
+
+## Macro `DEBUG_ASSERT_ASSUME`<a id="DEBUG_ASSERT_ASSUME"></a>
+
+``` cpp
+#define DEBUG_ASSERT_ASSUME(Expr)
+```
+
+Hint to the compiler that a condition is `true`. Define it yourself prior to including the header to override it.
+
+----
 
 ## Macro `DEBUG_ASSERT_FORCE_INLINE`<a id="DEBUG_ASSERT_FORCE_INLINE"></a>
 

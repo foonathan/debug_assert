@@ -43,6 +43,18 @@
     #endif
 #endif
 
+#ifndef DEBUG_ASSERT_ASSUME
+    #ifdef __GNUC__
+        #define DEBUG_ASSERT_ASSUME(Expr) do { if (!(Expr)) __builtin_unreachable(); } while (0)
+    #elif defined(_MSC_VER)
+        #define DEBUG_ASSERT_ASSUME(Expr) __assume(Expr)
+    #else
+        /// Hint to the compiler that a condition is `true`.
+        /// Define it yourself prior to including the header to override it.
+        #define DEBUG_ASSERT_ASSUME(Expr)
+    #endif
+#endif
+
 #ifndef DEBUG_ASSERT_FORCE_INLINE
     #ifdef __GNUC__
         #define DEBUG_ASSERT_FORCE_INLINE [[gnu::always_inline]] inline
@@ -202,10 +214,13 @@ namespace debug_assert
 
         template <class Expr, class Handler, unsigned Level, typename ... Args>
         DEBUG_ASSERT_FORCE_INLINE
-        auto do_assert(const Expr&, const source_location&, const char*,
+        auto do_assert(const Expr& expr, const source_location&, const char*,
                        Handler, level<Level>,
                        Args&&...) noexcept
-        -> typename enable_if<(Level > Handler::level)>::type {}
+        -> typename enable_if<(Level > Handler::level)>::type
+        {
+            DEBUG_ASSERT_ASSUME(expr());
+        }
 
         template <class Expr, class Handler, typename ... Args>
         auto do_assert(const Expr& expr, const source_location& loc, const char* expression,
@@ -222,10 +237,13 @@ namespace debug_assert
 
         template <class Expr, class Handler, typename ... Args>
         DEBUG_ASSERT_FORCE_INLINE
-        auto do_assert(const Expr&, const source_location&, const char*,
+        auto do_assert(const Expr& expr, const source_location&, const char*,
                        Handler,
                        Args&&...) noexcept
-        -> typename enable_if<Handler::level == 0>::type {}
+        -> typename enable_if<Handler::level == 0>::type
+        {
+            DEBUG_ASSERT_ASSUME(expr());
+        }
     } // namespace detail
 } // namespace debug_assert
 
@@ -269,8 +287,7 @@ namespace debug_assert
     #define DEBUG_UNREACHABLE(...) \
         debug_assert::detail::do_assert([&] { return false; }, DEBUG_ASSERT_CUR_SOURCE_LOCATION, "", __VA_ARGS__)
 #else
-    #define DEBUG_ASSERT(Expr, ...) \
-        [&] { return Expr; }
+    #define DEBUG_ASSERT(Expr, ...) DEBUG_ASSERT_ASSUME(Expr)
 
     #define DEBUG_UNREACHABLE(...) DEBUG_ASSERT_MARK_UNREACHABLE
 #endif
