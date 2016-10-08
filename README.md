@@ -1,6 +1,6 @@
-# debug-assert
+# debug_assert
 
-debug-assert is a simple, C++11, header-only library that provides a very flexible `DEBUG_ASSERT()` macro.
+debug_assert is a simple, C++11, header-only library that provides a very flexible `DEBUG_ASSERT()` macro.
 How many times did you write an assertion macro yourself, because `assert()` is controlled globally and cannot be enabled for certain parts of the program only?
 This library solves the problem by providing a flexible, modular assertion macro.
 
@@ -37,6 +37,13 @@ struct my_module
 A module handler must have `static` function `handle()` that takes a `debug_assert::source_location`, the stringified expression and any additional arguments you pass to `DEBUG_ASSERT()` (besides the `debug_assert::level`).
 
 See `example.cpp` for more information and [read the blogpost](https://foonathan.github.io/blog/2016/09/16/assertions.html).
+
+### CMake
+
+For convenience you can also use CMake to setup the include directory, set the C++11 flag and have options that map to the customizable macros.
+Simple call `add_subdirectory(path/to/debug_assert)` and then `target_link_libraries(my_target PUBLIC debug_assert)`.
+It will not actually build something, only setup the flags.
+The options are named like the macros.
 
 ## Documentation
 
