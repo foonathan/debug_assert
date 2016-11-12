@@ -13,7 +13,7 @@ This library solves the problem by providing a flexible, modular assertion macro
 * Support for levels - give levels to your assertion macro and only enable certain levels of assertions.
 * Little preprocessor use - just a single assertion macro which is needed to get the stringified expression and source location. Enabling/Disabling is controlled by compile time programming instead of preprocessor conditionals.
 * Fast - even though a disabled assertion will still expand to something,
-there is no overhead with even basic optimizations enabled and very little without optimization (just the code to read `__FILE__`, `__LINE__` and __func__`). To be precise: It will only evaluate the assertion expression if the assertion is enabled!
+there is no overhead with even basic optimizations enabled and very little without optimization (just the code to read `__FILE__` and `__LINE__`). To be precise: It will only evaluate the assertion expression if the assertion is enabled!
 
 ## Overview
 
@@ -56,7 +56,7 @@ The options are named like the macros.
 
 #define DEBUG_ASSERT_FORCE_INLINE inline
 
-#define DEBUG_ASSERT_CUR_SOURCE_LOCATION debug_assert::source_location{__FILE__, __LINE__, __func__}
+#define DEBUG_ASSERT_CUR_SOURCE_LOCATION debug_assert::source_location{__FILE__, __LINE__}
 
 #define DEBUG_ASSERT(Expr, ...) 
 
@@ -111,7 +111,7 @@ Strong hint to the compiler to inline a function. Define it yourself prior to in
 ## Macro `DEBUG_ASSERT_CUR_SOURCE_LOCATION`<a id="DEBUG_ASSERT_CUR_SOURCE_LOCATION"></a>
 
 ``` cpp
-#define DEBUG_ASSERT_CUR_SOURCE_LOCATION debug_assert::source_location{__FILE__, __LINE__, __func__}
+#define DEBUG_ASSERT_CUR_SOURCE_LOCATION debug_assert::source_location{__FILE__, __LINE__}
 ```
 
 Expands to the current [source\_location]().
@@ -165,8 +165,6 @@ struct source_location
     const char* file_name;
     
     unsigned line_number;
-    
-    const char* function_name;
 };
 ```
 
