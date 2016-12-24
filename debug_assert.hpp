@@ -45,11 +45,12 @@
 
 #ifndef DEBUG_ASSERT_ASSUME
 #ifdef __GNUC__
-#define DEBUG_ASSERT_ASSUME(Expr)                                              \
-  do {                                                                         \
-    if (!(Expr))                                                               \
-      __builtin_unreachable();                                                 \
-  } while (0)
+#define DEBUG_ASSERT_ASSUME(Expr)                                                                  \
+    do                                                                                             \
+    {                                                                                              \
+        if (!(Expr))                                                                               \
+            __builtin_unreachable();                                                               \
+    } while (0)
 #elif defined(_MSC_VER)
 #define DEBUG_ASSERT_ASSUME(Expr) __assume(Expr)
 #else
@@ -71,141 +72,184 @@
 #endif
 #endif
 
-namespace debug_assert {
-//=== source location ===//
-/// Defines a location in the source code.
-struct source_location {
-  const char *file_name; ///< The file name.
-  unsigned line_number;  ///< The line number.
-};
+namespace debug_assert
+{
+    //=== source location ===//
+    /// Defines a location in the source code.
+    struct source_location
+    {
+        const char* file_name;   ///< The file name.
+        unsigned    line_number; ///< The line number.
+    };
 
 /// Expands to the current [debug_assert::source_location]().
-#define DEBUG_ASSERT_CUR_SOURCE_LOCATION                                       \
-  debug_assert::source_location { __FILE__, __LINE__ }
+#define DEBUG_ASSERT_CUR_SOURCE_LOCATION                                                           \
+    debug_assert::source_location                                                                  \
+    {                                                                                              \
+        __FILE__, __LINE__                                                                         \
+    }
 
-//=== level ===//
-/// Tag type to indicate the level of an assertion.
-template <unsigned Level> struct level {};
+    //=== level ===//
+    /// Tag type to indicate the level of an assertion.
+    template <unsigned Level>
+    struct level
+    {
+    };
 
-/// Helper class that sets a certain level.
-/// Inherit from it in your module handler.
-template <unsigned Level> struct set_level {
-  static const unsigned level = Level;
-};
+    /// Helper class that sets a certain level.
+    /// Inherit from it in your module handler.
+    template <unsigned Level>
+    struct set_level
+    {
+        static const unsigned level = Level;
+    };
 
-template <unsigned Level> const unsigned set_level<Level>::level;
+    template <unsigned Level>
+    const unsigned     set_level<Level>::level;
 
-//=== handler ===//
-/// Does not do anything to handle a failed assertion (except calling
-/// [std::abort()]()).
-/// Inherit from it in your module handler.
-struct no_handler {
-  /// \effects Does nothing.
-  /// \notes Can take any additional arguments.
-  template <typename... Args>
-  static void handle(const source_location &, const char *,
-                     Args &&...) noexcept {}
-};
+    //=== handler ===//
+    /// Does not do anything to handle a failed assertion (except calling
+    /// [std::abort()]()).
+    /// Inherit from it in your module handler.
+    struct no_handler
+    {
+        /// \effects Does nothing.
+        /// \notes Can take any additional arguments.
+        template <typename... Args>
+        static void handle(const source_location&, const char*, Args&&...) noexcept
+        {
+        }
+    };
 
-/// The default handler that writes a message to `stderr`.
-/// Inherit from it in your module handler.
-struct default_handler {
-  /// \effects Prints a message to `stderr`.
-  /// \notes It can optionally accept an additional message string.
-  /// \notes If `DEBUG_ASSERT_NO_STDIO` is defined, it will do nothing.
-  static void handle(const source_location &loc, const char *expression,
-                     const char *message = nullptr) noexcept {
+    /// The default handler that writes a message to `stderr`.
+    /// Inherit from it in your module handler.
+    struct default_handler
+    {
+        /// \effects Prints a message to `stderr`.
+        /// \notes It can optionally accept an additional message string.
+        /// \notes If `DEBUG_ASSERT_NO_STDIO` is defined, it will do nothing.
+        static void handle(const source_location& loc, const char* expression,
+                           const char* message = nullptr) noexcept
+        {
 #ifndef DEBUG_ASSERT_NO_STDIO
-    if (*expression == '\0') {
-      if (message)
-        std::fprintf(stderr,
-                     "[debug assert] %s:%u: Unreachable code reached - %s.\n",
-                     loc.file_name, loc.line_number, message);
-      else
-        std::fprintf(stderr,
-                     "[debug assert] %s:%u: Unreachable code reached.\n",
-                     loc.file_name, loc.line_number);
-    } else if (message)
-      std::fprintf(stderr,
-                   "[debug assert] %s:%u: Assertion '%s' failed - %s.\n",
-                   loc.file_name, loc.line_number, expression, message);
-    else
-      std::fprintf(stderr, "[debug assert] %s:%u: Assertion '%s' failed.\n",
-                   loc.file_name, loc.line_number, expression);
+            if (*expression == '\0')
+            {
+                if (message)
+                    std::fprintf(stderr, "[debug assert] %s:%u: Unreachable code reached - %s.\n",
+                                 loc.file_name, loc.line_number, message);
+                else
+                    std::fprintf(stderr, "[debug assert] %s:%u: Unreachable code reached.\n",
+                                 loc.file_name, loc.line_number);
+            }
+            else if (message)
+                std::fprintf(stderr, "[debug assert] %s:%u: Assertion '%s' failed - %s.\n",
+                             loc.file_name, loc.line_number, expression, message);
+            else
+                std::fprintf(stderr, "[debug assert] %s:%u: Assertion '%s' failed.\n",
+                             loc.file_name, loc.line_number, expression);
 #else
-    (void)loc;
-    (void)expression;
-    (void)message;
+            (void)loc;
+            (void)expression;
+            (void)message;
 #endif
-  }
-};
+        }
+    };
 
-/// \exclude
-namespace detail {
-//=== boilerplate ===//
-// from http://en.cppreference.com/w/cpp/types/remove_reference
-template <typename T> struct remove_reference { using type = T; };
+    /// \exclude
+    namespace detail
+    {
+        //=== boilerplate ===//
+        // from http://en.cppreference.com/w/cpp/types/remove_reference
+        template <typename T>
+        struct remove_reference
+        {
+            using type = T;
+        };
 
-template <typename T> struct remove_reference<T &> { using type = T; };
+        template <typename T>
+        struct remove_reference<T&>
+        {
+            using type = T;
+        };
 
-template <typename T> struct remove_reference<T &&> { using type = T; };
+        template <typename T>
+        struct remove_reference<T&&>
+        {
+            using type = T;
+        };
 
-// from http://stackoverflow.com/a/27501759
-template <class T> T &&forward(typename remove_reference<T>::type &t) {
-  return static_cast<T &&>(t);
-}
+        // from http://stackoverflow.com/a/27501759
+        template <class T>
+        T&& forward(typename remove_reference<T>::type& t)
+        {
+            return static_cast<T&&>(t);
+        }
 
-template <class T> T &&forward(typename remove_reference<T>::type &&t) {
-  return static_cast<T &&>(t);
-}
+        template <class T>
+        T&& forward(typename remove_reference<T>::type&& t)
+        {
+            return static_cast<T&&>(t);
+        }
 
-template <bool Value> struct enable_if;
+        template <bool Value>
+        struct enable_if;
 
-template <> struct enable_if<true> { using type = void; };
+        template <>
+        struct enable_if<true>
+        {
+            using type = void;
+        };
 
-template <> struct enable_if<false> {};
+        template <>
+        struct enable_if<false>
+        {
+        };
 
-//=== assert implementation ===//
-// use enable if instead of tag dispatching
-// this removes on additional function and encourage optimization
-template <class Expr, class Handler, unsigned Level, typename... Args>
-auto do_assert(const Expr &expr, const source_location &loc,
-               const char *expression, Handler, level<Level>,
-               Args &&... args) noexcept ->
-    typename enable_if<Level <= Handler::level>::type {
-  static_assert(Level > 0, "level of an assertion must not be 0");
-  if (!expr()) {
-    Handler::handle(loc, expression, forward<Args>(args)...);
-    std::abort();
-  }
-}
+        //=== assert implementation ===//
+        // use enable if instead of tag dispatching
+        // this removes on additional function and encourage optimization
+        template <class Expr, class Handler, unsigned Level, typename... Args>
+        auto do_assert(const Expr& expr, const source_location& loc, const char* expression,
+                       Handler, level<Level>, Args&&... args) noexcept ->
+            typename enable_if<Level <= Handler::level>::type
+        {
+            static_assert(Level > 0, "level of an assertion must not be 0");
+            if (!expr())
+            {
+                Handler::handle(loc, expression, forward<Args>(args)...);
+                std::abort();
+            }
+        }
 
-template <class Expr, class Handler, unsigned Level, typename... Args>
-DEBUG_ASSERT_FORCE_INLINE auto
-do_assert(const Expr &expr, const source_location &, const char *, Handler,
-          level<Level>, Args &&...) noexcept ->
-    typename enable_if<(Level > Handler::level)>::type {
-  DEBUG_ASSERT_ASSUME(expr());
-}
+        template <class Expr, class Handler, unsigned Level, typename... Args>
+        DEBUG_ASSERT_FORCE_INLINE auto do_assert(const Expr& expr, const source_location&,
+                                                 const char*, Handler, level<Level>,
+                                                 Args&&...) noexcept ->
+            typename enable_if<(Level > Handler::level)>::type
+        {
+            DEBUG_ASSERT_ASSUME(expr());
+        }
 
-template <class Expr, class Handler, typename... Args>
-auto do_assert(const Expr &expr, const source_location &loc,
-               const char *expression, Handler, Args &&... args) noexcept ->
-    typename enable_if<Handler::level != 0>::type {
-  if (!expr()) {
-    Handler::handle(loc, expression, forward<Args>(args)...);
-    std::abort();
-  }
-}
+        template <class Expr, class Handler, typename... Args>
+        auto do_assert(const Expr& expr, const source_location& loc, const char* expression,
+                       Handler, Args&&... args) noexcept ->
+            typename enable_if<Handler::level != 0>::type
+        {
+            if (!expr())
+            {
+                Handler::handle(loc, expression, forward<Args>(args)...);
+                std::abort();
+            }
+        }
 
-template <class Expr, class Handler, typename... Args>
-DEBUG_ASSERT_FORCE_INLINE auto do_assert(const Expr &expr,
-                                         const source_location &, const char *,
-                                         Handler, Args &&...) noexcept ->
-    typename enable_if<Handler::level == 0>::type {
-  DEBUG_ASSERT_ASSUME(expr());
-}
-} // namespace detail
+        template <class Expr, class Handler, typename... Args>
+        DEBUG_ASSERT_FORCE_INLINE auto do_assert(const Expr& expr, const source_location&,
+                                                 const char*, Handler, Args&&...) noexcept ->
+            typename enable_if<Handler::level == 0>::type
+        {
+            DEBUG_ASSERT_ASSUME(expr());
+        }
+    } // namespace detail
 } // namespace debug_assert
 
 //=== assertion macros ===//
@@ -235,10 +279,9 @@ DEBUG_ASSERT_FORCE_INLINE auto do_assert(const Expr &expr,
 /// will expand to nothing.
 /// This should not be necessary, the regular version is optimized away
 /// completely.
-#define DEBUG_ASSERT(Expr, ...)                                                \
-  debug_assert::detail::do_assert([&] { return Expr; },                        \
-                                  DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr,     \
-                                  __VA_ARGS__)
+#define DEBUG_ASSERT(Expr, ...)                                                                    \
+    debug_assert::detail::do_assert([&] { return Expr; }, DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr, \
+                                    __VA_ARGS__)
 
 /// Marks a branch as unreachable.
 ///
@@ -260,10 +303,9 @@ DEBUG_ASSERT_FORCE_INLINE auto do_assert(const Expr &expr,
 /// will expand to `DEBUG_ASSERT_MARK_UNREACHABLE`.
 /// This should not be necessary, the regular version is optimized away
 /// completely.
-#define DEBUG_UNREACHABLE(...)                                                 \
-  debug_assert::detail::do_assert([&] { return false; },                       \
-                                  DEBUG_ASSERT_CUR_SOURCE_LOCATION, "",        \
-                                  __VA_ARGS__)
+#define DEBUG_UNREACHABLE(...)                                                                     \
+    debug_assert::detail::do_assert([&] { return false; }, DEBUG_ASSERT_CUR_SOURCE_LOCATION, "",   \
+                                    __VA_ARGS__)
 #else
 #define DEBUG_ASSERT(Expr, ...) DEBUG_ASSERT_ASSUME(Expr)
 
