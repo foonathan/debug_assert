@@ -210,8 +210,10 @@ namespace debug_assert
         // this removes on additional function and encourage optimization
         template <class Expr, class Handler, unsigned Level, typename... Args>
         auto do_assert(const Expr& expr, const source_location& loc, const char* expression,
-                       Handler, level<Level>, Args&&... args) noexcept ->
-            typename enable_if<Level <= Handler::level>::type
+                       Handler, level<Level>,
+                       Args&&... args) noexcept(noexcept(Handler::handle(loc, expression,
+                                                                         forward<Args>(args)...)))
+            -> typename enable_if<Level <= Handler::level>::type
         {
             static_assert(Level > 0, "level of an assertion must not be 0");
             if (!expr())
@@ -232,8 +234,10 @@ namespace debug_assert
 
         template <class Expr, class Handler, typename... Args>
         auto do_assert(const Expr& expr, const source_location& loc, const char* expression,
-                       Handler, Args&&... args) noexcept ->
-            typename enable_if<Handler::level != 0>::type
+                       Handler,
+                       Args&&... args) noexcept(noexcept(Handler::handle(loc, expression,
+                                                                         forward<Args>(args)...)))
+            -> typename enable_if<Handler::level != 0>::type
         {
             if (!expr())
             {
