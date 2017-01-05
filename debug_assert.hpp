@@ -284,8 +284,8 @@ namespace debug_assert
 /// This should not be necessary, the regular version is optimized away
 /// completely.
 #define DEBUG_ASSERT(Expr, ...)                                                                    \
-    debug_assert::detail::do_assert([&] { return Expr; }, DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr, \
-                                    __VA_ARGS__)
+    debug_assert::detail::do_assert([&]() noexcept { return Expr; },                               \
+                                    DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr, __VA_ARGS__)
 
 /// Marks a branch as unreachable.
 ///
@@ -308,8 +308,8 @@ namespace debug_assert
 /// This should not be necessary, the regular version is optimized away
 /// completely.
 #define DEBUG_UNREACHABLE(...)                                                                     \
-    debug_assert::detail::do_assert([&] { return false; }, DEBUG_ASSERT_CUR_SOURCE_LOCATION, "",   \
-                                    __VA_ARGS__)
+    debug_assert::detail::do_assert([&]() noexcept { return false; },                              \
+                                    DEBUG_ASSERT_CUR_SOURCE_LOCATION, "", __VA_ARGS__)
 #else
 #define DEBUG_ASSERT(Expr, ...) DEBUG_ASSERT_ASSUME(Expr)
 
