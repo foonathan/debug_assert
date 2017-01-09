@@ -43,6 +43,14 @@
 #endif
 #endif
 
+// checking for clang must come first because clang also defines __GNUC__.
+#if !defined(DEBUG_ASSERT_ASSUME) && defined(__clang__)
+// __has_builtin may not work in other compilers.
+#if __has_builtin(__builtin_assume)
+#define DEBUG_ASSERT_ASSUME(Expr) __builtin_assume(Expr)
+#endif
+#endif
+
 #ifndef DEBUG_ASSERT_ASSUME
 #ifdef __GNUC__
 #define DEBUG_ASSERT_ASSUME(Expr)                                                                  \
