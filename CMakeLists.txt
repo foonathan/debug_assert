@@ -41,9 +41,6 @@ target_compile_definitions(debug_assert INTERFACE
                                         ${_debug_assert_mark_unreachable}
                                         ${_debug_assert_assume}
                                         ${_debug_assert_force_inline})
-if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
-    target_compile_options(debug_assert INTERFACE "-std=c++11")
-endif()
 
 # example target
 add_executable(debug_assert_example EXCLUDE_FROM_ALL example.cpp)
