@@ -107,6 +107,16 @@ namespace debug_assert
     template <unsigned Level>
     const unsigned     set_level<Level>::level;
 
+    /// Helper class that controls whether the handler can throw or not.
+    /// Inherit from it in your module handler.
+    /// If the module does not inherit from this class, it is assumed that
+    /// the handle does not throw.
+    template <bool B>
+    struct allow_exception
+    {
+        static const bool allows_exception = B;
+    };
+
     //=== handler ===//
     /// Does not do anything to handle a failed assertion (except calling
     /// [std::abort()]()).
@@ -205,15 +215,29 @@ namespace debug_assert
         {
         };
 
+        //=== helper class to check if throw is allowed ===//
+        template <class Handler, typename = void>
+        struct allows_exception
+        {
+            static const bool value = false;
+        };
+
+        template <class Handler>
+        struct allows_exception<Handler, typename enable_if<Handler::allows_exception>::type>
+        {
+            static const bool value = true;
+        };
+
         //=== assert implementation ===//
         // use enable if instead of tag dispatching
         // this removes on additional function and encourage optimization
         template <class Expr, class Handler, unsigned Level, typename... Args>
         auto do_assert(const Expr& expr, const source_location& loc, const char* expression,
                        Handler, level<Level>,
-                       Args&&... args) noexcept(noexcept(Handler::handle(loc, expression,
-                                                                         forward<Args>(args)...)))
-            -> typename enable_if<Level <= Handler::level>::type
+                       Args&&... args) noexcept(!allows_exception<Handler>::value
+                                                || noexcept(Handler::handle(
+                                                       loc, expression, forward<Args>(args)...))) ->
+            typename enable_if<Level <= Handler::level>::type
         {
             static_assert(Level > 0, "level of an assertion must not be 0");
             if (!expr())
@@ -235,9 +259,10 @@ namespace debug_assert
         template <class Expr, class Handler, typename... Args>
         auto do_assert(const Expr& expr, const source_location& loc, const char* expression,
                        Handler,
-                       Args&&... args) noexcept(noexcept(Handler::handle(loc, expression,
-                                                                         forward<Args>(args)...)))
-            -> typename enable_if<Handler::level != 0>::type
+                       Args&&... args) noexcept(!allows_exception<Handler>::value
+                                                || noexcept(Handler::handle(
+                                                       loc, expression, forward<Args>(args)...))) ->
+            typename enable_if<Handler::level != 0>::type
         {
             if (!expr())
             {
