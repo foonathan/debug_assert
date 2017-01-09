@@ -111,10 +111,9 @@ namespace debug_assert
     /// Inherit from it in your module handler.
     /// If the module does not inherit from this class, it is assumed that
     /// the handle does not throw.
-    template <bool B>
     struct allow_exception
     {
-        static const bool allows_exception = B;
+        static const bool throwing_exception_is_allowed = true;
     };
 
     //=== handler ===//
@@ -223,9 +222,10 @@ namespace debug_assert
         };
 
         template <class Handler>
-        struct allows_exception<Handler, typename enable_if<Handler::allows_exception>::type>
+        struct allows_exception<Handler,
+                                typename enable_if<Handler::throwing_exception_is_allowed>::type>
         {
-            static const bool value = true;
+            static const bool value = Handler::throwing_exception_is_allowed;
         };
 
         //=== assert implementation ===//
