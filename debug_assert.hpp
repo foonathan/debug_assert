@@ -43,6 +43,24 @@
 #endif
 #endif
 
+#ifndef DEBUG_ASSERT_PURE_FUNCTION
+#ifdef __GNUC__
+#define DEBUG_ASSERT_PURE_FUNCTION __attribute__((pure))
+#else
+/// Hint to the compiler that a function is pure.
+/// Define it yourself prior to including the header to override it.
+#define DEBUG_ASSERT_PURE_FUNCTION
+#endif
+#endif
+
+// checking for clang must come first because clang also defines __GNUC__.
+#if !defined(DEBUG_ASSERT_ASSUME) && defined(__clang__)
+// __has_builtin may not work in other compilers.
+#if __has_builtin(__builtin_assume)
+#define DEBUG_ASSERT_ASSUME(Expr) __builtin_assume(Expr)
+#endif
+#endif
+
 #ifndef DEBUG_ASSERT_ASSUME
 #ifdef __GNUC__
 #define DEBUG_ASSERT_ASSUME(Expr)                                                                  \
@@ -309,7 +327,7 @@ namespace debug_assert
 /// This should not be necessary, the regular version is optimized away
 /// completely.
 #define DEBUG_ASSERT(Expr, ...)                                                                    \
-    debug_assert::detail::do_assert([&]() noexcept { return Expr; },                               \
+    debug_assert::detail::do_assert([&]() DEBUG_ASSERT_PURE_FUNCTION noexcept { return Expr; },    \
                                     DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr, __VA_ARGS__)
 
 /// Marks a branch as unreachable.
@@ -333,7 +351,7 @@ namespace debug_assert
 /// This should not be necessary, the regular version is optimized away
 /// completely.
 #define DEBUG_UNREACHABLE(...)                                                                     \
-    debug_assert::detail::do_assert([&]() noexcept { return false; },                              \
+    debug_assert::detail::do_assert([&]() DEBUG_ASSERT_PURE_FUNCTION noexcept { return false; },   \
                                     DEBUG_ASSERT_CUR_SOURCE_LOCATION, "", __VA_ARGS__)
 #else
 #define DEBUG_ASSERT(Expr, ...) DEBUG_ASSERT_ASSUME(Expr)
