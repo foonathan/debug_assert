@@ -51,7 +51,11 @@ target_link_libraries(debug_assert_example PUBLIC debug_assert)
 include( CMakePackageConfigHelpers )
 set(CONFIG_PACKAGE_INSTALL_DIR lib/cmake/debug_assert)
 
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config.cmake "include(\${CMAKE_CURRENT_LIST_DIR}/debug_assert-targets.cmake)")
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config.cmake "
+include(\${CMAKE_CURRENT_LIST_DIR}/debug_assert-targets.cmake)
+set(debug_assert_LIBRARY debug_assert)
+set(debug_assert_LIBRARIES debug_assert)
+")
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config-version.cmake
