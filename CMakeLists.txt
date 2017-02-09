@@ -33,8 +33,9 @@ endif()
 
 # interface target
 add_library(debug_assert INTERFACE)
-target_sources(debug_assert INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/debug_assert.hpp)
-target_include_directories(debug_assert INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_sources(debug_assert INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/debug_assert.hpp>)
+target_include_directories(debug_assert INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+target_include_directories(debug_assert SYSTEM INTERFACE $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>)
 target_compile_definitions(debug_assert INTERFACE
                                         ${_debug_assert_no_stdio}
                                         ${_debug_assert_disable}
@@ -45,3 +46,38 @@ target_compile_definitions(debug_assert INTERFACE
 # example target
 add_executable(debug_assert_example EXCLUDE_FROM_ALL example.cpp)
 target_link_libraries(debug_assert_example PUBLIC debug_assert)
+
+# Create package config files
+include( CMakePackageConfigHelpers )
+set(CONFIG_PACKAGE_INSTALL_DIR lib/cmake/debug_assert)
+
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config.cmake "
+include(\${CMAKE_CURRENT_LIST_DIR}/debug_assert-targets.cmake)
+set(debug_assert_LIBRARY debug_assert)
+set(debug_assert_LIBRARIES debug_assert)
+")
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config-version.cmake
+  VERSION 1.1
+  COMPATIBILITY SameMajorVersion
+)
+
+
+# Install target and header
+install(TARGETS debug_assert 
+    EXPORT debug_assert-targets
+    DESTINATION lib)
+
+install(FILES debug_assert.hpp DESTINATION include)
+
+install( EXPORT debug_assert-targets
+  DESTINATION
+    ${CONFIG_PACKAGE_INSTALL_DIR}
+)
+
+install( FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config-version.cmake
+  DESTINATION
+    ${CONFIG_PACKAGE_INSTALL_DIR} )
