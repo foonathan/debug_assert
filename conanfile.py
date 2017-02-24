@@ -6,7 +6,7 @@ import os
 class DebugAssert(ConanFile):
     name = 'debug_assert'
     url  = 'https://foonathan.github.io/blog/2016/09/16/assertions.html'
-    version = '1.1'
+    version = '1.2'
     username = 'Manu343726'
     channel  = 'testing'
     exports = '*.hpp'
