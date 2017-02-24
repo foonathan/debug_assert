@@ -210,5 +210,5 @@ The default handler that writes a message to `stderr`. Inherit from it in your m
 
 ## Acknowledgements
 
-Thanks a lot to [@Manu343726](https://github.com/Manu343726) and [@verri](https://github.com/verri).
+Thanks a lot to [@Manu343726](https://github.com/Manu343726), [@verri](https://github.com/verri) and [@pfultz2](https://github.com/pfultz2).
 
