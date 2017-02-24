@@ -250,17 +250,18 @@ namespace debug_assert
         // use enable if instead of tag dispatching
         // this removes on additional function and encourage optimization
         template <class Expr, class Handler, unsigned Level, typename... Args>
-        auto do_assert(const Expr& expr, const source_location& loc, const char* expression,
-                       Handler, level<Level>,
-                       Args&&... args) noexcept(!allows_exception<Handler>::value
-                                                || noexcept(Handler::handle(
-                                                       loc, expression, forward<Args>(args)...))) ->
-            typename enable_if<Level <= Handler::level>::type
+        auto do_assert(
+            const Expr& expr, const source_location& loc, const char* expression, Handler,
+            level<Level>,
+            Args&&... args) noexcept(!allows_exception<Handler>::value
+                                     || noexcept(Handler::handle(loc, expression,
+                                                                 detail::forward<Args>(args)...)))
+            -> typename enable_if<Level <= Handler::level>::type
         {
             static_assert(Level > 0, "level of an assertion must not be 0");
             if (!expr())
             {
-                Handler::handle(loc, expression, forward<Args>(args)...);
+                Handler::handle(loc, expression, detail::forward<Args>(args)...);
                 std::abort();
             }
         }
@@ -275,16 +276,16 @@ namespace debug_assert
         }
 
         template <class Expr, class Handler, typename... Args>
-        auto do_assert(const Expr& expr, const source_location& loc, const char* expression,
-                       Handler,
-                       Args&&... args) noexcept(!allows_exception<Handler>::value
-                                                || noexcept(Handler::handle(
-                                                       loc, expression, forward<Args>(args)...))) ->
-            typename enable_if<Handler::level != 0>::type
+        auto do_assert(
+            const Expr& expr, const source_location& loc, const char* expression, Handler,
+            Args&&... args) noexcept(!allows_exception<Handler>::value
+                                     || noexcept(Handler::handle(loc, expression,
+                                                                 detail::forward<Args>(args)...)))
+            -> typename enable_if<Handler::level != 0>::type
         {
             if (!expr())
             {
-                Handler::handle(loc, expression, forward<Args>(args)...);
+                Handler::handle(loc, expression, detail::forward<Args>(args)...);
                 std::abort();
             }
         }
