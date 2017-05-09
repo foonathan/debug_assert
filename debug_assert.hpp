@@ -39,6 +39,7 @@
 #else
 /// Hint to the compiler that a code branch is unreachable.
 /// Define it yourself prior to including the header to override it.
+/// \notes This must be usable in an expression.
 #define DEBUG_ASSERT_MARK_UNREACHABLE
 #endif
 #endif
@@ -48,7 +49,6 @@
 #define DEBUG_ASSERT_PURE_FUNCTION __attribute__((pure))
 #else
 /// Hint to the compiler that a function is pure.
-/// Define it yourself prior to including the header to override it.
 #define DEBUG_ASSERT_PURE_FUNCTION
 #endif
 #endif
@@ -57,24 +57,21 @@
 #if !defined(DEBUG_ASSERT_ASSUME) && defined(__clang__)
 // __has_builtin may not work in other compilers.
 #if __has_builtin(__builtin_assume)
-#define DEBUG_ASSERT_ASSUME(Expr) __builtin_assume(Expr)
+#define DEBUG_ASSERT_ASSUME(Expr) static_cast<void>(__builtin_assume(Expr), 0)
 #endif
 #endif
 
 #ifndef DEBUG_ASSERT_ASSUME
 #ifdef __GNUC__
-#define DEBUG_ASSERT_ASSUME(Expr)                                                                  \
-    do                                                                                             \
-    {                                                                                              \
-        if (!(Expr))                                                                               \
-            __builtin_unreachable();                                                               \
-    } while (0)
+#define DEBUG_ASSERT_ASSUME(Expr) static_cast<void>((Expr) ? 0 : (__builtin_unreachable(), 0))
 #elif defined(_MSC_VER)
-#define DEBUG_ASSERT_ASSUME(Expr) __assume(Expr)
+#define DEBUG_ASSERT_ASSUME(Expr) static_cast<void>(__assume(Expr), 0)
 #else
 /// Hint to the compiler that a condition is `true`.
 /// Define it yourself prior to including the header to override it.
-#define DEBUG_ASSERT_ASSUME(Expr)
+/// \notes This must be usable in an expression,
+/// and yield a `void` value.
+#define DEBUG_ASSERT_ASSUME(Expr) static_cast<void>(0)
 #endif
 #endif
 
@@ -218,17 +215,17 @@ namespace debug_assert
             return static_cast<T&&>(t);
         }
 
-        template <bool Value>
+        template <bool Value, typename T = void>
         struct enable_if;
 
-        template <>
-        struct enable_if<true>
+        template <typename T>
+        struct enable_if<true, T>
         {
-            using type = void;
+            using type = T;
         };
 
-        template <>
-        struct enable_if<false>
+        template <typename T>
+        struct enable_if<false, T>
         {
         };
 
@@ -246,56 +243,81 @@ namespace debug_assert
             static const bool value = Handler::throwing_exception_is_allowed;
         };
 
+        //=== regular void fake ===//
+        struct regular_void
+        {
+            constexpr regular_void() = default;
+
+            // enable conversion to anything
+            // conversion must not actually be used
+            template <typename T>
+            constexpr operator T&() const noexcept
+            {
+                // doesn't matter how to get the T
+                return DEBUG_ASSERT_MARK_UNREACHABLE, *static_cast<T*>(nullptr);
+            }
+        };
+
         //=== assert implementation ===//
+        // function name will be shown on constexpr assertion failure
+        template <class Handler, typename... Args>
+        regular_void debug_assertion_failed(const source_location& loc, const char* expression,
+                                            Args&&... args)
+        {
+            return Handler::handle(loc, expression, detail::forward<Args>(args)...), std::abort(),
+                   regular_void();
+        }
+
         // use enable if instead of tag dispatching
         // this removes on additional function and encourage optimization
         template <class Expr, class Handler, unsigned Level, typename... Args>
-        auto do_assert(
+        constexpr auto do_assert(
             const Expr& expr, const source_location& loc, const char* expression, Handler,
             level<Level>,
             Args&&... args) noexcept(!allows_exception<Handler>::value
                                      || noexcept(Handler::handle(loc, expression,
                                                                  detail::forward<Args>(args)...)))
-            -> typename enable_if<Level <= Handler::level>::type
+            -> typename enable_if<Level <= Handler::level, regular_void>::type
         {
             static_assert(Level > 0, "level of an assertion must not be 0");
-            if (!expr())
-            {
-                Handler::handle(loc, expression, detail::forward<Args>(args)...);
-                std::abort();
-            }
+            return expr() ? regular_void() :
+                            debug_assertion_failed<Handler>(loc, expression,
+                                                            detail::forward<Args>(args)...);
         }
 
         template <class Expr, class Handler, unsigned Level, typename... Args>
-        DEBUG_ASSERT_FORCE_INLINE auto do_assert(const Expr& expr, const source_location&,
-                                                 const char*, Handler, level<Level>,
-                                                 Args&&...) noexcept ->
-            typename enable_if<(Level > Handler::level)>::type
+        DEBUG_ASSERT_FORCE_INLINE constexpr auto do_assert(const Expr& expr, const source_location&,
+                                                           const char*, Handler, level<Level>,
+                                                           Args&&...) noexcept ->
+            typename enable_if<(Level > Handler::level), regular_void>::type
         {
-            DEBUG_ASSERT_ASSUME(expr());
+            return DEBUG_ASSERT_ASSUME(expr()), regular_void();
         }
 
         template <class Expr, class Handler, typename... Args>
-        auto do_assert(
+        constexpr auto do_assert(
             const Expr& expr, const source_location& loc, const char* expression, Handler,
             Args&&... args) noexcept(!allows_exception<Handler>::value
                                      || noexcept(Handler::handle(loc, expression,
                                                                  detail::forward<Args>(args)...)))
-            -> typename enable_if<Handler::level != 0>::type
+            -> typename enable_if<Handler::level != 0, regular_void>::type
         {
-            if (!expr())
-            {
-                Handler::handle(loc, expression, detail::forward<Args>(args)...);
-                std::abort();
-            }
+            return expr() ? regular_void() :
+                            debug_assertion_failed<Handler>(loc, expression,
+                                                            detail::forward<Args>(args)...);
         }
 
         template <class Expr, class Handler, typename... Args>
-        DEBUG_ASSERT_FORCE_INLINE auto do_assert(const Expr& expr, const source_location&,
-                                                 const char*, Handler, Args&&...) noexcept ->
-            typename enable_if<Handler::level == 0>::type
+        DEBUG_ASSERT_FORCE_INLINE constexpr auto do_assert(const Expr& expr, const source_location&,
+                                                           const char*, Handler, Args&&...) noexcept
+            -> typename enable_if<Handler::level == 0, regular_void>::type
         {
-            DEBUG_ASSERT_ASSUME(expr());
+            return DEBUG_ASSERT_ASSUME(expr()), regular_void();
+        }
+
+        DEBUG_ASSERT_PURE_FUNCTION constexpr bool always_false() noexcept
+        {
+            return false;
         }
     } // namespace detail
 } // namespace debug_assert
@@ -323,13 +345,17 @@ namespace debug_assert
 /// `<handler-specific-args>` as-is.
 /// If the handler function returns, it will call [std::abort()].
 ///
+/// The macro will expand to a `void` expression.
+///
 /// \notes Define `DEBUG_ASSERT_DISABLE` to completely disable this macro, it
 /// will expand to nothing.
 /// This should not be necessary, the regular version is optimized away
 /// completely.
 #define DEBUG_ASSERT(Expr, ...)                                                                    \
-    debug_assert::detail::do_assert([&]() DEBUG_ASSERT_PURE_FUNCTION noexcept { return Expr; },    \
-                                    DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr, __VA_ARGS__)
+    static_cast<void>(                                                                             \
+        debug_assert::detail::do_assert([&]()                                                      \
+                                            DEBUG_ASSERT_PURE_FUNCTION noexcept { return Expr; },  \
+                                        DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr, __VA_ARGS__))
 
 /// Marks a branch as unreachable.
 ///
@@ -347,17 +373,26 @@ namespace debug_assert
 /// and `args` are the `<handler-specific-args>` as-is.
 /// If the handler function returns, it will call [std::abort()].
 ///
+/// This macro is also usable in a constant expression,
+/// i.e. you can use it in a `constexpr` function to verify a condition like so:
+/// `cond(val) ? do_sth(val) : DEBUG_UNREACHABLE(…)`.
+/// You can't use `DEBUG_ASSERT` there.
+///
+/// The macro will expand to an expression convertible to any type,
+/// although the resulting object is invalid,
+/// which doesn't matter, as the statement is unreachable anyway.
+///
 /// \notes Define `DEBUG_ASSERT_DISABLE` to completely disable this macro, it
 /// will expand to `DEBUG_ASSERT_MARK_UNREACHABLE`.
 /// This should not be necessary, the regular version is optimized away
 /// completely.
 #define DEBUG_UNREACHABLE(...)                                                                     \
-    debug_assert::detail::do_assert([&]() DEBUG_ASSERT_PURE_FUNCTION noexcept { return false; },   \
+    debug_assert::detail::do_assert(debug_assert::detail::always_false,                            \
                                     DEBUG_ASSERT_CUR_SOURCE_LOCATION, "", __VA_ARGS__)
 #else
 #define DEBUG_ASSERT(Expr, ...) DEBUG_ASSERT_ASSUME(Expr)
 
-#define DEBUG_UNREACHABLE(...) DEBUG_ASSERT_MARK_UNREACHABLE
+#define DEBUG_UNREACHABLE(...) (DEBUG_ASSERT_MARK_UNREACHABLE, debug_assert::detail::regular_void())
 #endif
 
 #endif // DEBUG_ASSERT_HPP_INCLUDED
