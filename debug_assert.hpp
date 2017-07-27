@@ -101,7 +101,7 @@ namespace debug_assert
 #define DEBUG_ASSERT_CUR_SOURCE_LOCATION                                                           \
     debug_assert::source_location                                                                  \
     {                                                                                              \
-        __FILE__, __LINE__                                                                         \
+        __FILE__, static_cast<unsigned>(__LINE__)                                                  \
     }
 
     //=== level ===//
