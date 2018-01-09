@@ -44,8 +44,10 @@ target_compile_definitions(debug_assert INTERFACE
                                         ${_debug_assert_force_inline})
 
 # example target
-add_executable(debug_assert_example EXCLUDE_FROM_ALL example.cpp)
-target_link_libraries(debug_assert_example PUBLIC debug_assert)
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    add_executable(debug_assert_example EXCLUDE_FROM_ALL example.cpp)
+    target_link_libraries(debug_assert_example PUBLIC debug_assert)
+endif()
 
 # Create package config files
 include( CMakePackageConfigHelpers )
