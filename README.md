@@ -1,4 +1,4 @@
-# debug_assert [ ![Download](https://api.bintray.com/packages/manu343726/conan-packages/debug_assert%3AManu343726/images/download.svg) ](https://bintray.com/manu343726/conan-packages/debug_assert%3AManu343726/_latestVersion)
+# debug_assert[ ![Download](https://api.bintray.com/packages/manu343726/conan-packages/debug_assert%3AManu343726/images/download.svg) ](https://bintray.com/manu343726/conan-packages/debug_assert%3AManu343726/_latestVersion)
 
 debug_assert is a simple, C++11, header-only library that provides a very flexible `DEBUG_ASSERT()` macro.
 How many times did you write an assertion macro yourself, because `assert()` is controlled globally and cannot be enabled for certain parts of the program only?
@@ -69,17 +69,17 @@ The options are named like the macros.
 namespace <a href='doc_debug_assert.md#debug_assert.hpp'>debug_assert</a>
 {
     struct <a href='doc_debug_assert.md#debug_assert::source_location'>source_location</a>;
-    
+
     template &lt;unsigned Level&gt;
     struct <a href='doc_debug_assert.md#debug_assert::level-Level-'>level</a>;
-    
+
     template &lt;unsigned Level&gt;
     struct <a href='doc_debug_assert.md#debug_assert::set_level-Level-'>set_level</a>;
-    
+
     struct <a href='doc_debug_assert.md#debug_assert::allow_exception'>allow_exception</a>;
-    
+
     struct <a href='doc_debug_assert.md#debug_assert::no_handler'>no_handler</a>;
-    
+
     struct <a href='doc_debug_assert.md#debug_assert::default_handler'>default_handler</a>;
 }</code></pre>
 
@@ -125,7 +125,7 @@ It will only check the assertion if `<level>` is less than or equal to `Handler:
 <pre><code class="language-cpp">struct source_location
 {
     const char* <a href='doc_debug_assert.md#debug_assert::source_location'>file_name</a>;
-    
+
     unsigned <a href='doc_debug_assert.md#debug_assert::source_location::line_number'>line_number</a>;
 };</code></pre>
 
