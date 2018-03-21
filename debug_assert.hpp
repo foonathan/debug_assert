@@ -25,6 +25,13 @@
 #ifndef DEBUG_ASSERT_HPP_INCLUDED
 #define DEBUG_ASSERT_HPP_INCLUDED
 
+// Ignore __builtin_assume() warnings on clang.
+// See https://github.com/foonathan/debug_assert/issues/12
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignore "-Wassume"
+#endif // __clang__
+
 #include <cstdlib>
 
 #ifndef DEBUG_ASSERT_NO_STDIO
@@ -394,5 +401,11 @@ namespace debug_assert
 
 #define DEBUG_UNREACHABLE(...) (DEBUG_ASSERT_MARK_UNREACHABLE, debug_assert::detail::regular_void())
 #endif
+
+// Ignore __builtin_assume() warnings on clang.
+// See https://github.com/foonathan/debug_assert/issues/12
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif // __clang__
 
 #endif // DEBUG_ASSERT_HPP_INCLUDED
