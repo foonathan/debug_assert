@@ -29,7 +29,7 @@
 // See https://github.com/foonathan/debug_assert/issues/12
 #ifdef __clang__
 #pragma clang diagnostic push
-#pragma clang diagnostic ignore "-Wassume"
+#pragma clang diagnostic ignored "-Wassume"
 #endif // __clang__
 
 #include <cstdlib>
