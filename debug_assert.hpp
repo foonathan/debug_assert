@@ -25,13 +25,6 @@
 #ifndef DEBUG_ASSERT_HPP_INCLUDED
 #define DEBUG_ASSERT_HPP_INCLUDED
 
-// Ignore __builtin_assume() warnings on clang.
-// See https://github.com/foonathan/debug_assert/issues/12
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wassume"
-#endif // __clang__
-
 #include <cstdlib>
 
 #ifndef DEBUG_ASSERT_NO_STDIO
@@ -57,28 +50,6 @@
 #else
 /// Hint to the compiler that a function is pure.
 #define DEBUG_ASSERT_PURE_FUNCTION
-#endif
-#endif
-
-// checking for clang must come first because clang also defines __GNUC__.
-#if !defined(DEBUG_ASSERT_ASSUME) && defined(__clang__)
-// __has_builtin may not work in other compilers.
-#if __has_builtin(__builtin_assume)
-#define DEBUG_ASSERT_ASSUME(Expr) static_cast<void>(__builtin_assume(Expr), 0)
-#endif
-#endif
-
-#ifndef DEBUG_ASSERT_ASSUME
-#ifdef __GNUC__
-#define DEBUG_ASSERT_ASSUME(Expr) static_cast<void>((Expr) ? 0 : (__builtin_unreachable(), 0))
-#elif defined(_MSC_VER)
-#define DEBUG_ASSERT_ASSUME(Expr) static_cast<void>(__assume(Expr), 0)
-#else
-/// Hint to the compiler that a condition is `true`.
-/// Define it yourself prior to including the header to override it.
-/// \notes This must be usable in an expression,
-/// and yield a `void` value.
-#define DEBUG_ASSERT_ASSUME(Expr) static_cast<void>(0)
 #endif
 #endif
 
@@ -293,12 +264,12 @@ namespace debug_assert
         }
 
         template <class Expr, class Handler, unsigned Level, typename... Args>
-        DEBUG_ASSERT_FORCE_INLINE constexpr auto do_assert(const Expr& expr, const source_location&,
+        DEBUG_ASSERT_FORCE_INLINE constexpr auto do_assert(const Expr&, const source_location&,
                                                            const char*, Handler, level<Level>,
                                                            Args&&...) noexcept ->
             typename enable_if<(Level > Handler::level), regular_void>::type
         {
-            return DEBUG_ASSERT_ASSUME(expr()), regular_void();
+            return regular_void();
         }
 
         template <class Expr, class Handler, typename... Args>
@@ -315,11 +286,11 @@ namespace debug_assert
         }
 
         template <class Expr, class Handler, typename... Args>
-        DEBUG_ASSERT_FORCE_INLINE constexpr auto do_assert(const Expr& expr, const source_location&,
+        DEBUG_ASSERT_FORCE_INLINE constexpr auto do_assert(const Expr&, const source_location&,
                                                            const char*, Handler, Args&&...) noexcept
             -> typename enable_if<Handler::level == 0, regular_void>::type
         {
-            return DEBUG_ASSERT_ASSUME(expr()), regular_void();
+            return regular_void();
         }
 
         DEBUG_ASSERT_PURE_FUNCTION constexpr bool always_false() noexcept
@@ -397,15 +368,9 @@ namespace debug_assert
     debug_assert::detail::do_assert(debug_assert::detail::always_false,                            \
                                     DEBUG_ASSERT_CUR_SOURCE_LOCATION, "", __VA_ARGS__)
 #else
-#define DEBUG_ASSERT(Expr, ...) DEBUG_ASSERT_ASSUME(Expr)
+#define DEBUG_ASSERT(Expr, ...) static_cast<void>(0)
 
 #define DEBUG_UNREACHABLE(...) (DEBUG_ASSERT_MARK_UNREACHABLE, debug_assert::detail::regular_void())
 #endif
-
-// Ignore __builtin_assume() warnings on clang.
-// See https://github.com/foonathan/debug_assert/issues/12
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif // __clang__
 
 #endif // DEBUG_ASSERT_HPP_INCLUDED
