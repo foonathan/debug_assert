@@ -44,15 +44,6 @@
 #    endif
 #endif
 
-#ifndef DEBUG_ASSERT_PURE_FUNCTION
-#    ifdef __GNUC__
-#        define DEBUG_ASSERT_PURE_FUNCTION __attribute__((pure))
-#    else
-/// Hint to the compiler that a function is pure.
-#        define DEBUG_ASSERT_PURE_FUNCTION
-#    endif
-#endif
-
 #ifndef DEBUG_ASSERT_FORCE_INLINE
 #    ifdef __GNUC__
 #        define DEBUG_ASSERT_FORCE_INLINE [[gnu::always_inline]] inline
@@ -289,7 +280,7 @@ namespace detail
         return regular_void();
     }
 
-    DEBUG_ASSERT_PURE_FUNCTION constexpr bool always_false() noexcept
+    constexpr bool always_false() noexcept
     {
         return false;
     }
@@ -327,8 +318,8 @@ namespace detail
 /// completely.
 #    define DEBUG_ASSERT(Expr, ...)                                                                \
         static_cast<void>(debug_assert::detail::do_assert(                                         \
-            [&]() DEBUG_ASSERT_PURE_FUNCTION noexcept { return Expr; },                            \
-            DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr, __VA_ARGS__))
+            [&]() noexcept { return Expr; }, DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr,              \
+            __VA_ARGS__))
 
 /// Marks a branch as unreachable.
 ///

@@ -54,8 +54,6 @@ The options are named like the macros.
 
 <pre><code class="language-cpp">#define <a href='doc_debug_assert.md#debug_assert.hpp'>DEBUG_ASSERT_MARK_UNREACHABLE</a>
 
-#define <a href='doc_debug_assert.md#debug_assert.hpp'>DEBUG_ASSERT_PURE_FUNCTION</a>
-
 #define <a href='doc_debug_assert.md#debug_assert.hpp'>DEBUG_ASSERT_FORCE_INLINE</a>
 
 #define <a href='doc_debug_assert.md#DEBUG_ASSERT_CUR_SOURCE_LOCATION'>DEBUG_ASSERT_CUR_SOURCE_LOCATION</a>
