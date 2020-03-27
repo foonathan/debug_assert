@@ -5,6 +5,13 @@
 cmake_minimum_required(VERSION 3.1)
 project(DEBUG_ASSERT)
 
+# Determine if debug_assert is built as a subproject (using add_subdirectory)
+# or if it is the master project.
+set(MASTER_PROJECT OFF)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(MASTER_PROJECT ON)
+endif ()
+
 # options
 option(DEBUG_ASSERT_NO_STDIO "whether or not the default_handler uses fprintf() to print an error message" OFF)
 if(DEBUG_ASSERT_NO_STDIO)
@@ -30,6 +37,8 @@ set(DEBUG_ASSERT_FORCE_INLINE "" CACHE STRING "override of DEBUG_ASSERT_FORCE_IN
 if(DEBUG_ASSERT_FORCE_INLINE)
     set(_debug_assert_force_inline "DEBUG_ASSERT_FORCE_INLINE=${DEBUG_ASSERT_FORCE_INLINE}")
 endif()
+
+option(DEBUG_ASSERT_INSTALL "Generate the install target." ${MASTER_PROJECT})
 
 # interface target
 add_library(debug_assert INTERFACE)
@@ -66,20 +75,22 @@ write_basic_package_version_file(
 )
 
 
-# Install target and header
-install(TARGETS debug_assert
-    EXPORT debug_assert-targets
-    DESTINATION lib)
+if(DEBUG_ASSERT_INSTALL)
+    # Install target and header
+    install(TARGETS debug_assert
+        EXPORT debug_assert-targets
+        DESTINATION lib)
 
-install(FILES debug_assert.hpp DESTINATION include)
+    install(FILES debug_assert.hpp DESTINATION include)
 
-install( EXPORT debug_assert-targets
-  DESTINATION
-    ${CONFIG_PACKAGE_INSTALL_DIR}
-)
+    install( EXPORT debug_assert-targets
+    DESTINATION
+        ${CONFIG_PACKAGE_INSTALL_DIR}
+    )
 
-install( FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config-version.cmake
-  DESTINATION
-    ${CONFIG_PACKAGE_INSTALL_DIR} )
+    install( FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config-version.cmake
+    DESTINATION
+        ${CONFIG_PACKAGE_INSTALL_DIR} )
+endif()
