@@ -25,10 +25,10 @@
 #ifndef DEBUG_ASSERT_HPP_INCLUDED
 #define DEBUG_ASSERT_HPP_INCLUDED
 
-#include <cstdlib>
+#include <stdlib.h>
 
 #ifndef DEBUG_ASSERT_NO_STDIO
-#    include <cstdio>
+#    include <stdio.h>
 #endif
 
 #ifndef DEBUG_ASSERT_MARK_UNREACHABLE
@@ -126,18 +126,18 @@ struct default_handler
         if (*expression == '\0')
         {
             if (message)
-                std::fprintf(stderr, "[debug assert] %s:%u: Unreachable code reached - %s.\n",
-                             loc.file_name, loc.line_number, message);
+                ::fprintf(stderr, "[debug assert] %s:%u: Unreachable code reached - %s.\n",
+                          loc.file_name, loc.line_number, message);
             else
-                std::fprintf(stderr, "[debug assert] %s:%u: Unreachable code reached.\n",
-                             loc.file_name, loc.line_number);
+                ::fprintf(stderr, "[debug assert] %s:%u: Unreachable code reached.\n",
+                          loc.file_name, loc.line_number);
         }
         else if (message)
-            std::fprintf(stderr, "[debug assert] %s:%u: Assertion '%s' failed - %s.\n",
-                         loc.file_name, loc.line_number, expression, message);
+            ::fprintf(stderr, "[debug assert] %s:%u: Assertion '%s' failed - %s.\n", loc.file_name,
+                      loc.line_number, expression, message);
         else
-            std::fprintf(stderr, "[debug assert] %s:%u: Assertion '%s' failed.\n", loc.file_name,
-                         loc.line_number, expression);
+            ::fprintf(stderr, "[debug assert] %s:%u: Assertion '%s' failed.\n", loc.file_name,
+                      loc.line_number, expression);
 #else
         (void)loc;
         (void)expression;
@@ -234,7 +234,7 @@ namespace detail
 #    pragma warning(push)
 #    pragma warning(disable : 4702)
 #endif
-        return Handler::handle(loc, expression, detail::forward<Args>(args)...), std::abort(),
+        return Handler::handle(loc, expression, detail::forward<Args>(args)...), ::abort(),
                regular_void();
 #if defined(_MSC_VER)
 #    pragma warning(pop)
