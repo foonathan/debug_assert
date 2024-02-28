@@ -3,7 +3,7 @@
 # found in the top-level directory of this distribution.
 
 cmake_minimum_required(VERSION 3.5)
-project(DEBUG_ASSERT)
+project(DEBUG_ASSERT VERSION 1.3.4)
 
 # Determine if debug_assert is built as a subproject (using add_subdirectory)
 # or if it is the master project.
@@ -72,7 +72,7 @@ set(DEBUG_ASSERT_CMAKE_SIZEOF_VOID_P ${CMAKE_SIZEOF_VOID_P})
 set(CMAKE_SIZEOF_VOID_P "")
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config-version.cmake
-  VERSION 1.3.1
+  VERSION 1.3.4
   COMPATIBILITY SameMajorVersion
 )
 set(CMAKE_SIZEOF_VOID_P ${DEBUG_ASSERT_CMAKE_SIZEOF_VOID_P})
