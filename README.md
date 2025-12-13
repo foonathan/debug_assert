@@ -1,4 +1,7 @@
-# debug_assert[ ![Download](https://api.bintray.com/packages/manu343726/conan-packages/debug_assert%3AManu343726/images/download.svg) ](https://bintray.com/manu343726/conan-packages/debug_assert%3AManu343726/_latestVersion)
+# debug_assert 
+
+![Project Status](https://img.shields.io/endpoint?url=https%3A%2F%2Fwww.jonathanmueller.dev%2Fproject%2Fdebug_assert%2Findex.json)
+[![Download](https://api.bintray.com/packages/manu343726/conan-packages/debug_assert%3AManu343726/images/download.svg) ](https://bintray.com/manu343726/conan-packages/debug_assert%3AManu343726/_latestVersion)
 
 debug_assert is a simple, C++11, header-only library that provides a very flexible `DEBUG_ASSERT()` macro.
 How many times did you write an assertion macro yourself, because `assert()` is controlled globally and cannot be enabled for certain parts of the program only?

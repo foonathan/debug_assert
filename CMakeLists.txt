@@ -2,8 +2,15 @@
 # This file is subject to the license terms in the LICENSE file
 # found in the top-level directory of this distribution.
 
-cmake_minimum_required(VERSION 3.1...3.30)
-project(DEBUG_ASSERT)
+cmake_minimum_required(VERSION 3.5...3.30)
+project(DEBUG_ASSERT VERSION 1.3.4)
+
+# Determine if debug_assert is built as a subproject (using add_subdirectory)
+# or if it is the master project.
+set(MASTER_PROJECT OFF)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(MASTER_PROJECT ON)
+endif ()
 
 # options
 option(DEBUG_ASSERT_NO_STDIO "whether or not the default_handler uses fprintf() to print an error message" OFF)
@@ -30,6 +37,8 @@ set(DEBUG_ASSERT_FORCE_INLINE "" CACHE STRING "override of DEBUG_ASSERT_FORCE_IN
 if(DEBUG_ASSERT_FORCE_INLINE)
     set(_debug_assert_force_inline "DEBUG_ASSERT_FORCE_INLINE=${DEBUG_ASSERT_FORCE_INLINE}")
 endif()
+
+option(DEBUG_ASSERT_INSTALL "Generate the install target." ${MASTER_PROJECT})
 
 # interface target
 add_library(debug_assert INTERFACE)
@@ -59,27 +68,31 @@ set(debug_assert_LIBRARY debug_assert)
 set(debug_assert_LIBRARIES debug_assert)
 ")
 
+set(DEBUG_ASSERT_CMAKE_SIZEOF_VOID_P ${CMAKE_SIZEOF_VOID_P})
+set(CMAKE_SIZEOF_VOID_P "")
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config-version.cmake
-  VERSION 1.3.1
+  VERSION 1.3.4
   COMPATIBILITY SameMajorVersion
 )
+set(CMAKE_SIZEOF_VOID_P ${DEBUG_ASSERT_CMAKE_SIZEOF_VOID_P})
 
+if(DEBUG_ASSERT_INSTALL)
+    # Install target and header
+    install(TARGETS debug_assert
+        EXPORT debug_assert-targets
+        DESTINATION lib)
 
-# Install target and header
-install(TARGETS debug_assert
-    EXPORT debug_assert-targets
-    DESTINATION lib)
+    install(FILES debug_assert.hpp DESTINATION include)
 
-install(FILES debug_assert.hpp DESTINATION include)
+    install( EXPORT debug_assert-targets
+    DESTINATION
+        ${CONFIG_PACKAGE_INSTALL_DIR}
+    )
 
-install( EXPORT debug_assert-targets
-  DESTINATION
-    ${CONFIG_PACKAGE_INSTALL_DIR}
-)
-
-install( FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config-version.cmake
-  DESTINATION
-    ${CONFIG_PACKAGE_INSTALL_DIR} )
+    install( FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/debug_assert-config-version.cmake
+    DESTINATION
+        ${CONFIG_PACKAGE_INSTALL_DIR} )
+endif()

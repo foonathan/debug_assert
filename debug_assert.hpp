@@ -25,10 +25,10 @@
 #ifndef DEBUG_ASSERT_HPP_INCLUDED
 #define DEBUG_ASSERT_HPP_INCLUDED
 
-#include <cstdlib>
+#include <stdlib.h>
 
 #ifndef DEBUG_ASSERT_NO_STDIO
-#    include <cstdio>
+#    include <stdio.h>
 #endif
 
 #ifndef DEBUG_ASSERT_MARK_UNREACHABLE
@@ -126,18 +126,18 @@ struct default_handler
         if (*expression == '\0')
         {
             if (message)
-                std::fprintf(stderr, "[debug assert] %s:%u: Unreachable code reached - %s.\n",
-                             loc.file_name, loc.line_number, message);
+                ::fprintf(stderr, "[debug assert] %s:%u: Unreachable code reached - %s.\n",
+                          loc.file_name, loc.line_number, message);
             else
-                std::fprintf(stderr, "[debug assert] %s:%u: Unreachable code reached.\n",
-                             loc.file_name, loc.line_number);
+                ::fprintf(stderr, "[debug assert] %s:%u: Unreachable code reached.\n",
+                          loc.file_name, loc.line_number);
         }
         else if (message)
-            std::fprintf(stderr, "[debug assert] %s:%u: Assertion '%s' failed - %s.\n",
-                         loc.file_name, loc.line_number, expression, message);
+            ::fprintf(stderr, "[debug assert] %s:%u: Assertion '%s' failed - %s.\n", loc.file_name,
+                      loc.line_number, expression, message);
         else
-            std::fprintf(stderr, "[debug assert] %s:%u: Assertion '%s' failed.\n", loc.file_name,
-                         loc.line_number, expression);
+            ::fprintf(stderr, "[debug assert] %s:%u: Assertion '%s' failed.\n", loc.file_name,
+                      loc.line_number, expression);
 #else
         (void)loc;
         (void)expression;
@@ -230,8 +230,15 @@ namespace detail
     regular_void debug_assertion_failed(const source_location& loc, const char* expression,
                                         Args&&... args)
     {
-        return Handler::handle(loc, expression, detail::forward<Args>(args)...), std::abort(),
+#if defined(_MSC_VER)
+#    pragma warning(push)
+#    pragma warning(disable : 4702)
+#endif
+        return Handler::handle(loc, expression, detail::forward<Args>(args)...), ::abort(),
                regular_void();
+#if defined(_MSC_VER)
+#    pragma warning(pop)
+#endif
     }
 
     // use enable if instead of tag dispatching
@@ -317,9 +324,9 @@ namespace detail
 /// This should not be necessary, the regular version is optimized away
 /// completely.
 #    define DEBUG_ASSERT(Expr, ...)                                                                \
-        static_cast<void>(debug_assert::detail::do_assert(                                         \
-            [&]() noexcept { return Expr; }, DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr,              \
-            __VA_ARGS__))
+        static_cast<void>(debug_assert::detail::do_assert([&]() noexcept { return Expr; },         \
+                                                          DEBUG_ASSERT_CUR_SOURCE_LOCATION, #Expr, \
+                                                          __VA_ARGS__))
 
 /// Marks a branch as unreachable.
 ///
